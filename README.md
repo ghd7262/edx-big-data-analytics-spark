@@ -128,5 +128,36 @@ We want to see how the run time of two code snippets varies as n, size of array 
 <strong>Memory Latency</strong> is the time between when CPU issues the command to the time when command is complete. This time could be short if the element is already in the L1 Cache and very long if the element is in external memory (disk or SSD).
 - Note CPU runs at about 10^-9.
 - System time is accurate to micro-second, so 0KB is not actually zero.
-- Avg SSD random access latency is 10^-5 - 10^-4
-- Avg memory access latency is 10^-7 - 10^-5
+- Avg SSD random access latency is 10^-5 - 10^-4.
+- Avg memory access latency is 10^-7 - 10^-5.
+
+> The bigger the array, farther you are from CPU, i.e. 10GB has to be stored in the hard drive
+
+> <strong>SSD vs. HDD:</strong> SSD's are faster when it comes to raw speed. In terms of sequential speed, unless we are copying large files back and forth, the comparison is meaningless. SSD's are all about little data transactions that happen all the time, i.e. messenger, operating system, transactions where you do not have to physically move ahead across a disk SSD outperforms HDD. So in system responsiveness SSD is the fastest. In terms of playing music files, archive of pictures, HDD's are faster. Note as of 2014, with $160, you can buy 256GB SSD while you can by 4TB HDD. In terms of reliability, HDD's wear out faster as opposed to SDD's but if you write to a consumer grade model often, it will wear out quickly.
+
+
+<strong>Sequential Access</strong>
+- Random access degrades rapidly with the size of the blocks.
+- Sequential access is much faster.
+- Note 10GB to disk sequentially takes 8.9 seconds or less than 1 second for a gigabyte.
+- Writing 1TB disk at this rate takes ~1000 seconds or about 16 minutes.
+- When you want to write big blocks, SSD (Solid State Disk) is much faster than the main memory.
+  - Why?
+    - Byte rate for writing large blocks is about 100MBps
+    - Byte rate for writing large SSD blocks is about 1GBps
+    - Memory: Sequential access: 100MBps, random access: 10^-9 for 1kb and 10^-6 - 10^-3 for 10GB.
+    - SSD: Sequential access: 1GBps, random access: 10^-5 - 10^-3 for 10kb, 10^-4 - 10^-1 for 10GB.
+
+<strong>bandwidth vs. latency</strong>: Bandwidth is the total number of gigabytes we can write in so many seconds while latency is a property of every write itself.
+
+> <strong>Q:What is latency?</strong>
+
+> A: the time difference between the time at which the CPU is issuing a read or write command and, the time the command is complete.
+
+> <strong>Q: How do we get a long tail distribution?</strong>
+
+> A: if the probability of getting extreme values is much higher than what a normal distribution would give
+
+> <strong>Q: What kind of distribution do we see with latency?</strong>
+
+> A: Long tail distribution
