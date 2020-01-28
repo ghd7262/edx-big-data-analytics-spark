@@ -143,12 +143,28 @@ We want to see how the run time of two code snippets varies as n, size of array 
 - Writing 1TB disk at this rate takes ~1000 seconds or about 16 minutes.
 - When you want to write big blocks, SSD (Solid State Disk) is much faster than the main memory.
   - Why?
-    - Byte rate for writing large blocks is about 100MBps
+    - Byte rate for writing large blocks for memory is about 100MBps
     - Byte rate for writing large SSD blocks is about 1GBps
-    - Memory: Sequential access: 100MBps, random access: 10^-9 for 1kb and 10^-6 - 10^-3 for 10GB.
+    - Memory: Sequential access: 100MBps, random access: 10^-9 for 10kb and 10^-6 - 10^-3 for 10GB.
     - SSD: Sequential access: 1GBps, random access: 10^-5 - 10^-3 for 10kb, 10^-4 - 10^-1 for 10GB.
+- Having a big sized L3 Cache is helpful because the bigger the L3 cache, the more data you can put into cache at once.
 
 <strong>bandwidth vs. latency</strong>: Bandwidth is the total number of gigabytes we can write in so many seconds while latency is a property of every write itself.
+- Latency usually have long tails, so use log-log plots.
+- Memory latency varies from 10^-9 - 10^-9 sec depending on access pattern.
+- SSD latency for random access varies from 10^-5 - 10^-1
+- When reading or writing large blocks, we care about **throughput** or **byte-rate** not **latency**.
+  - Typical throughput: Memory (100MBps); SSD (1GBps)
+
+**Impact on Big Data Analytics**
+- Clock rate is stuck at around 3GHz, and will be stuck there for the foreseeable future.
+> GHz is a clock frequency, a.k.a. **clock rate** or **clock speed**, representing a cycle of time. An oscillator circuit supplies a small amount of electricity to a crystal each second that is measured in kHz,MHz, or GHz. "Hz" is an abbreviation of Hertz.
+- Faster computers/disks/networks are expensive.
+- When we want to analyze big data, the focus is more on moving data around or data access instead of calculation.
+- The cost-effective solution is to use cluster of many cheap computers with multi-cores and break up the data so that each computer has a small fraction of data.
+  - Such solution is provided by the data-centers or the cloud
+
+
 
 > <strong>Q:What is latency?</strong>
 
@@ -161,3 +177,78 @@ We want to see how the run time of two code snippets varies as n, size of array 
 > <strong>Q: What kind of distribution do we see with latency?</strong>
 
 > A: Long tail distribution
+
+----
+### Memory Hierarchy
+- Real systems have a several levels of storage types:
+  - Top of Hierarchy: small and fast storages close to CPU
+  - Bottom of Hierarchy: big and slow storages further from CPU
+- Caching is used to transfer data between different levels of the hierarchy.
+- To the programmer / compiler does not need to know
+  - The hardware provides an **abstraction**: memory looks like a single large array (Memory hierarchy abstraction).
+- Performance depends on program's access pattern.
+- **Data processing Cluster**: collection of multiple computers linked through an ethernet connection.
+  - Each computers share storage.
+  - Locality: Data needed for CPU to perform computation and this data resides on the same computer as the CPU.
+- Mechanism to transfer data between computers. In Spark, this distribution is called the RDD (Resilient Distribution Dataset)
+
+> **Q: List different storage devices to their respective places in the memory hierarchy**
+
+> A: CPU / L1 Cache / L2 Cache / L3 Cache / Main Memory / Disk Storage / Local Area Network
+
+> **Q:Why do we use caching?**
+
+> A: to transfer data between the different levels of the memory Hierarchy
+
+> **Q: How is momoery abstracted to the programmer?**
+
+> A: as a large, single array
+----
+
+### History of Large Scale Computing
+**Super computers**
+- Usually called 'Cray','Deep Blue','Blue Gene',etc...
+- Specialized hardwares that are extremely expensive.
+- Designed to solve specialized problems such as predicting the weather and playing chess.
+**Data Centers**
+- Machines that are the physical side of the 'cloud-computing'. It is like a very big factory that has collections of commodity computers (100,000's).
+- Created to provide computation for large and small organizations.
+
+**How did this all start?**
+- Started in 2003 where Larry Page and Sergey Brin developed a method for combining a large clusters of commodity computers into a big cluster and sharing the data across the cluster.
+- Each file is broken into fixed-sized **chunks**.
+- Each chunk is stored on multiple **chunk servers**.
+- The location of the chunks is managed by the **master**.
+  - Master computer knows the locations of the chunks and how to access them.
+
+> **HDFS (Hadoop File Server)** is the storage unit of Hadoop that is used to store and process huge volumes of data on multiple datanodes. It is designed with low cost hardware that provides data across multiple hadoop clusters. It has fault tolerance and throughput. Large file is broken down into small blocks of data. HDFS has a default block size of 128MB which can be increased as per requirement. Multiple copies of each block are stored in the cluster in a distributed manner on different nodes.
+
+> **GFS**: As the number internet users grew in the early 2000, Google faced the problem of storing increasing user data on its traditional data servers. Thousands of search queries were raised per second. There was a need for large, distributed highly fault tolerant file system to store and process the queries. The solution was the GFS. GFS consists of a single master and multiple chunk servers.
+
+**Properties of GFS/HDFS**
+- Uses commodity hardware: low cost per byte of storage.
+- **Locality**: each piece of data are close to a CPU (you have access to many CPU's without moving the data).
+- **Redundancy**: cluster can recover easily from server failure.
+- **Simple abstraction**: the whole system is designed to function like a regular file system and the chunk mechanism is hidden.
+
+**Map-Reduce**
+- HDFS is a storage abstraction (way to store files on many machines).
+- Map-Reduce is a computation abstraction that works well with HDFS.
+- Allows programmer to specify parallel computation without knowing how the hardware is organized.
+
+**Spark**
+- Developed by Matei Zaharia, amplab, 2014.
+- Hadoop uses shared file system (disk).
+- On the other hand, Spark uses shared memory which has faster lower latency.
+
+> **Q: What are supercomputers designed for?**
+
+> A: Solve specialized, important problems.
+
+> **Q:You are given a cluster of 5 servers, each with 500GB of storage. You run HDFS on these 5 servers with a redundancy factor of 4. What is the effective amount of total storage space available on the HDFS cluster?**
+
+> A: 625GB
+
+> **Q: Which of the following are NOT properties of HDFS?**
+
+> A: Provides computational abstraction (Redundancy / Locality of data to CPU / Abstracts filesystem from user / uses commodity hardware).
