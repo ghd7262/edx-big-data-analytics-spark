@@ -253,3 +253,190 @@ We want to see how the run time of two code snippets varies as n, size of array 
 > **Q: Which of the following are NOT properties of HDFS?**
 
 > A: Provides computational abstraction (Redundancy / Locality of data to CPU / Abstracts filesystem from user / uses commodity hardware).
+
+----
+### Map Reduce
+- **Map Reduce** is a programming pattern used a lot in big distributed data computation.
+- Suppose that we are given the following:
+  - **Map**: square each item
+      - list L = [0,1,2,3]
+      - Compute the square of each item
+      - output: [0,1,4,9]
+  - Traditional approach would be the following:
+```python
+# For loop
+O = []
+for i in L:
+  O.append(i*i)
+# list comprehension
+[i*i for i in L]
+```
+    - In Python way, we compute from first to the last in order
+<br/><br/>
+  - Map-Reduce:
+  ```python
+  map(lambda x: x * x, L)
+  ```
+    - In Map-Reduce, computation order is not sepcified
+  - **Reduce**: Compute the sum
+    - A list L = [3,1,5,7]
+    - Find the sum(16)
+    - Traditional way:
+    ```python
+    # use builtin
+    sum(L)
+    # for loop
+    s = 0
+    for i in L:
+        s += i
+    ```
+      - Compute from first to last order.
+    - Map-Reduce:
+    ```Python
+    reduce(lambda (x,y): x+y, L)
+    ```
+      - Computation order is not specified
+    - **Map + Reduce**
+      - list L = [0,1,2,3]
+      - Compute the sum of the squares
+      - Note the differences
+      - Traditional:
+      ```python
+      # for loop
+      s = 0
+      for i in L:
+        s += i * i
+      # list comprehension
+      sum([i*i for i in L])
+      ```
+        - Compute from first to last order
+        - Immediate execution
+      - Map-reduce:
+      ```Python
+      reduce(lambda x,y: x + y, map(lambda i: i * i, L))
+      ```
+        - computation order is not specified.
+        - Execution plan
+    - Wrong way:
+    ```python
+    reduce(lambda x,y : x + y * y)
+    ```
+      - map, reduce operations should not depend on :
+        - order of items in the list (commutativity)
+        - order of operations (associativity)
+      - It is this independence that allows parallel computing.
+- **Order Independence**: The result of map or reduce does not depend on the order.
+- **Why Order Independence?**:
+  - Computation order can be chosen by compiler/optimizer in an efficient manner.
+  - Allows for parallel computation of sums of subsets.
+    - Modern hardware calls for parallel computation but parallel computation is very hard to program.
+  - Using map-reduce, programmer exposes to the compiler opportunities for parallel computation.
+
+  > **Q: Consider a list L of size d. What are the sizes of the results of map(lambda x, operation(x), L) and reduce(lambda x,y: operation(x,y), L) respectively? (operation() is some function that works on the elements of L)**
+
+  > A: d,1
+
+  >**Q: Consider a list L = [1, 2, 3, 4, 5, 6, 7, 8]. The function reduce(lambda x, y: x + y, L) is executed in parallel across 4 CPU cores. Each execution of x+y takes 1 ns. How long will it take for the task to complete?**
+
+  > A: 3ns
+
+  ----
+  ### Short History of Map Reduce
+  - GFS (2003) with Google Map Reduce 2004
+  - Apache Hadoop (2006)
+    - Open-source implementation of GFS + Map Reduce
+    - File System: GFS -> HDFS
+    - Compute System: Google MapReduce -> Hadoop MapReduce
+    - Large eco-system: Apache pig, Apache Hive, Apache HBase, Apache Phoenix, Apache Spark, Apache ZooKeeper, Cloudera Impala, Apache Flume, Apache Sqoop, Apache Oozie, Apache Storm.
+  - Apache Spark (2014)
+    - Matei Zaharia, MPLab, Berkeley (Now in MIT)
+    - Main diff. from Hadoop: distributed memory instead of distributed files
+  - Native lang. of Hadoop eco-system is Java.
+    - Spark can be programmed in java, but code tends to be long.
+    - Scala allows the parallel programming to be abstracted. It is the core language of Spark.
+      - The main problem is the it has a small user base.
+      - You will want to learn scala if you want to extend spark.
+    - PySpark is a Python library for programming Spark.
+      - Does not always achieve the same efficiencies, but is much easier to learn.
+
+**Spark Architecture**
+  - Spark Context:
+    - The Pyspark program runs on the main node.
+    - Control of the other nodes is achieved through a special object called the
+
+**SparkContext (sc)**.
+  - A notebook can have only one **SparkContext** object.
+  - initialization: `sc = SparkContext()`, use parameters for non-default configuration.
+
+**Resilient Distributed Dataset (RDD)**
+  - A list whose elements are distributed over several computers.
+  - The main data structure in Spark.
+  - When in RDD form, the elements of the list can be manipulated only through RDD specific methods.
+  - RDDs can be created from a list on the master node or from a file.
+  - RDDs can be translated back to a local list using the command: "collect".
+
+**Examples**
+```python
+## initialization
+sc = SparkContext()
+RDD = sc.parallelize([0,1,2])
+# sum the squares of the items
+RDD.map(lambda x: x*x).reduce(lambda x,y: x + y)
+# 5
+# = 0*0 + 1*1 + 2*2
+```
+- Reduce generates a single item on the master node.
+
+RDD to RDD
+```python
+# initialize an RDD
+RDD = sc.parallelize([0,1,2])
+# sum the squares of the items
+A = RDD.map(lambda x: x * x)
+A.collect()
+# [0,1,4]
+```
+- `collect()` Collects all of the items in the RDD into a list in the master.
+- If the RDD is large, this can take a long time.
+
+Checking the start of an RDD
+```python
+# initialize a large RDD
+n = 10000
+B = sc.parallelize(range(n))
+
+# get the first few elements of an RDD
+print 'first element= ', B.first()
+print 'first 5 elements= ', B.take(5)
+# first element = 0
+# first 5 elements = [0,1,2,3,4]
+```
+
+Sampling an RDD
+```python
+# initialize a large RDD
+n = 10000
+B = sc.parallelize(range(n))
+
+# sample about m elements into a new RDD
+m = 5
+C = B.sample(False, m/n)
+C.collect()
+# [27, 459, 4681, 5166, 5808, 7132, 9793]
+```
+- Each run results in a different sample.
+- Sample size varies, expected size is 5.
+- Result is an RDD, need to collect to list.
+- Sampling is very useful for ML.
+
+> **Q: Which of the following operations on an RDD also returns an RDD? Check all that apply**
+
+> A: map() and sample()
+
+> **Q: What languages can Spark applications be written in?**
+
+> A: Java / Scala / Python
+
+> **Q: Which of the following is not a characteristic of the collect() function of an RDD?**
+
+> A: It returns a subset of the distributed data
