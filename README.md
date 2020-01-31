@@ -200,7 +200,7 @@ We want to see how the run time of two code snippets varies as n, size of array 
 
 > A: to transfer data between the different levels of the memory Hierarchy
 
-> **Q: How is momoery abstracted to the programmer?**
+> **Q: How is memory abstracted to the programmer?**
 
 > A: as a large, single array
 ----
@@ -210,6 +210,7 @@ We want to see how the run time of two code snippets varies as n, size of array 
 - Usually called 'Cray','Deep Blue','Blue Gene',etc...
 - Specialized hardwares that are extremely expensive.
 - Designed to solve specialized problems such as predicting the weather and playing chess.
+
 **Data Centers**
 - Machines that are the physical side of the 'cloud-computing'. It is like a very big factory that has collections of commodity computers (100,000's).
 - Created to provide computation for large and small organizations.
