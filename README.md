@@ -440,3 +440,9 @@ C.collect()
 > **Q: Which of the following is not a characteristic of the collect() function of an RDD?**
 
 > A: It returns a subset of the distributed data
+
+----
+### Spark Architecture
+**Spatial software organization**:
+- Our input command is run on the master node where Spark driver runs on the master node and is responsible of executing the input command.
+-
